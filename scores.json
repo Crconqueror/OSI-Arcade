@@ -1,0 +1,18 @@
+{
+  "wrapper": {
+    "best": 380,
+    "stars": 0
+  },
+  "subnet": {
+    "best": 0,
+    "stars": 0
+  },
+  "router": {
+    "best": 903,
+    "stars": 2
+  },
+  "congestion": {
+    "best": 111,
+    "stars": 1
+  }
+}
