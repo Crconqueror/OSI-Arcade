@@ -142,8 +142,8 @@ class Game:
         if self.auto:
             pill(s, "DEMO", (1078, 39), PINK, 15, anchor="midright")
         else:
-            text(s, "P pause  S slow", (940, 22), 13, MID)
-            text(s, "Esc quit", (940, 40), 13, MID)
+            text(s, "P pause  S slow  F full", (940, 22), 13, MID)
+            text(s, "Esc menu", (940, 40), 13, MID)
 
 
 # =============================================================== 1. Packet Wrapper

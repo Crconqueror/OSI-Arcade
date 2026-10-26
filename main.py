@@ -1,8 +1,9 @@
 """CN Arcade - seven mini-games that demo Computer Networks concepts.
 
-Run:  python3 main.py      (needs: pip install pygame)
-Keys: 1-7 pick a game, D demo mode, P pause, S slow mode, Esc back/quit.
+Run:  python3 main.py [--windowed]      (needs: pip install pygame)
+Keys: 1-7 pick a game, D demo mode, P pause, S slow mode, F fullscreen, Esc back/quit.
 """
+import argparse
 import json
 import math
 import sys
@@ -19,15 +20,45 @@ SLOW_SPEED = 0.2          # game speed while Slow mode is on (S toggles it)
 
 
 class App:
-    def __init__(self):
+    def __init__(self, fullscreen=True):
         pygame.init()
         pygame.display.set_caption("CN Arcade")
-        self.screen = pygame.display.set_mode((W, H), pygame.SCALED)
+        self.fullscreen = fullscreen
+        try:
+            self.screen = self.set_mode(fullscreen)
+        except pygame.error as exc:
+            if not fullscreen:
+                raise
+            print(f"Fullscreen unavailable ({exc}); using a window.", file=sys.stderr)
+            self.fullscreen = False
+            self.screen = self.set_mode(False)
         self.clock = pygame.time.Clock()
         self.sky = Sky()
         self.scores = self.load()
         self.slow = False
         self.scene = Hub(self)
+
+    @staticmethod
+    def set_mode(fullscreen):
+        """The game is drawn on a fixed 1100x700 canvas; SCALED fits it to the display."""
+        flags = pygame.SCALED | (pygame.FULLSCREEN if fullscreen else 0)
+        return pygame.display.set_mode((W, H), flags)
+
+    def toggle_fullscreen(self):
+        want = not self.fullscreen
+        try:
+            toggled = pygame.display.toggle_fullscreen() == 0    # 0 = success
+        except pygame.error:
+            toggled = False
+        if toggled:
+            self.screen = pygame.display.get_surface()          # smoothest path on macOS
+        else:
+            try:
+                self.screen = self.set_mode(want)               # fallback for other drivers
+            except pygame.error as exc:
+                print(f"Could not switch display mode ({exc}).", file=sys.stderr)
+                return
+        self.fullscreen = want
 
     def load(self):
         try:
@@ -53,6 +84,9 @@ class App:
             if e.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            if e.type == pygame.KEYDOWN and e.key in (pygame.K_f, pygame.K_F11):
+                self.toggle_fullscreen()
+                continue
             if e.type == pygame.KEYDOWN and e.key == pygame.K_s:
                 self.slow = not self.slow          # works on every screen
                 continue
@@ -82,11 +116,14 @@ class Hub:
             row, col = divmod(i, 4)
             x = 42 + col * 258 + (129 if row == 1 else 0)
             self.cards.append((pygame.Rect(x, 150 + row * 225, 240, 205), g))
-        self.demo_btn = Button((300, 625, 230, 54), "Demo mode (D)", PINK, 20, key=pygame.K_d)
-        self.quit_btn = Button((570, 625, 230, 54), "Quit (Esc)", WHITE, 20, key=pygame.K_ESCAPE)
+        self.full_btn = Button((175, 625, 230, 54), "Fullscreen (F)", BLUE, 20)
+        self.demo_btn = Button((435, 625, 230, 54), "Demo mode (D)", PINK, 20, key=pygame.K_d)
+        self.quit_btn = Button((695, 625, 230, 54), "Quit (Esc)", WHITE, 20, key=pygame.K_ESCAPE)
 
     def handle(self, e):
-        if self.demo_btn.hit(e):
+        if self.full_btn.hit(e):
+            self.app.toggle_fullscreen()
+        elif self.demo_btn.hit(e):
             Demo(self.app).start()
         elif self.quit_btn.hit(e):
             pygame.quit()
@@ -104,7 +141,7 @@ class Hub:
     def draw(self, s):
         outlined(s, "CN ARCADE", (W // 2, 58 + math.sin(self.t * 2) * 4), 64, YELLOW, width=4)
         text(s, "Seven mini-games, one network stack", (W // 2, 108), 20, INK, bold=True, anchor="midtop")
-        text(s, "S = slow mode", (20, 20), 15, INK, bold=True)
+        text(s, "S = slow mode   F = fullscreen", (20, 20), 15, INK, bold=True)
         total = sum(v.get("stars", 0) for v in self.app.scores.values())
         star(s, (985, 52), 18)
         text(s, f"{total} / {3 * len(GAMES)}", (1010, 52), 22, INK, bold=True, anchor="midleft")
@@ -122,6 +159,9 @@ class Hub:
             sc = self.app.scores.get(g.key, {})
             for k in range(3):
                 star(s, (rr.centerx - 34 + k * 34, rr.y + 175), 13, k < sc.get("stars", 0))
+        self.full_btn.label = "Windowed (F)" if self.app.fullscreen else "Fullscreen (F)"
+        self.full_btn.active = self.app.fullscreen
+        self.full_btn.draw(s)
         self.demo_btn.draw(s)
         self.quit_btn.draw(s)
 
@@ -290,4 +330,7 @@ class Demo:
 
 
 if __name__ == "__main__":
-    App().run()
+    parser = argparse.ArgumentParser(description="CN Arcade")
+    parser.add_argument("--windowed", action="store_true",
+                        help="start in a window instead of fullscreen (F toggles)")
+    App(fullscreen=not parser.parse_args().windowed).run()
