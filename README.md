@@ -17,6 +17,8 @@ Every game starts with a **"big idea" card**, ends with a **"what you just saw" 
 **Demo mode** plays all seven games automatically (about 4 minutes), which is handy for presentations.
 Press **S** anywhere to toggle **slow mode** (0.2x speed) to explain what is happening on screen; change `SLOW_SPEED` in `main.py` to adjust it.
 
+The arcade starts **fullscreen**: the 1100x700 canvas is scaled to fit your display, with letterbox bars on screens of a different aspect ratio. Press **F** (or **F11** on Windows/Linux) to switch between fullscreen and a window at any time.
+
 ## Setup (macOS)
 1. Install Python 3.10+ from [python.org](https://www.python.org/downloads/) (the installer includes everything needed).
 2. Install pygame:
@@ -27,13 +29,15 @@ Press **S** anywhere to toggle **slow mode** (0.2x speed) to explain what is hap
    ```bash
    python3 main.py
    ```
+   It starts fullscreen. Use `python3 main.py --windowed` to start in a window; **F** toggles at any time.
 Works the same on Windows (`python` instead of `python3`) and Linux.
 
 ## Controls
 | Where | Keys |
 |---|---|
-| Menu | Click a card or press **1-7** · **D** demo mode · **S** slow mode · **Esc** quit |
-| Any game | **P** pause · **S** slow mode (0.2x speed) · **Esc** back to menu |
+| Menu | Click a card or press **1-7** · **D** demo mode · **S** slow mode · **F** fullscreen · **Esc** quit |
+| Any game | **P** pause · **S** slow mode (0.2x speed) · **F** fullscreen · **Esc** back to menu |
+| Anywhere | **F** toggle fullscreen (**F11** on Windows/Linux) |
 | Packet Wrapper | Click a card or **1/2/3** |
 | Subnet Sniper | Click a balloon or **1-4** |
 | Router Rush | Click routers in order · **Backspace** undo · **T** peek at routing table |
